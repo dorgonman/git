@@ -58,7 +58,6 @@ p4_access_checked = False
 
 def p4_build_cmd(cmd):
     """Build a suitable p4 command line.
-
     This consolidates building and returning a p4 command line into one
     location. It means that hooking into the environment, or other configuration
     can be done more easily.
@@ -121,12 +120,10 @@ def chdir(path, is_client_path=False):
        variable for use by P4.  It does not look at getcwd() output.
        Since we're not using the shell, it is necessary to set the
        PWD environment variable explicitly.
-
        Normally, expand the path to force it to be absolute.  This
        addresses the use of relative path names inside P4 settings,
        e.g. P4CONFIG=.p4config.  P4 does not simply open the filename
        as given; it looks for .p4config using PWD.
-
        If is_client_path, the path was handed to us directly by p4,
        and may be a symbolic link.  Do not call os.getcwd() in this
        case, because it will cause p4 to think that PWD is not inside
@@ -160,7 +157,6 @@ def die(msg):
 
 def prompt(prompt_text):
     """ Prompt the user to choose one of the choices
-
     Choices are identified in the prompt_text by square brackets around
     a single letter option.
     """
@@ -245,15 +241,12 @@ def run_hook_command(cmd, param):
     """Executes a git hook command
        cmd = the command line file to be executed. This can be
        a file that is run by OS association.
-
        param = a list of parameters to pass to the cmd command
-
        On windows, the extension is checked to see if it should
        be run with the Git for Windows Bash shell.  If there
        is no file extension, the file is deemed a bash shell
        and will be handed off to sh.exe. Otherwise, Windows
        will be called with the shell to handle the file assocation.
-
        For non Windows operating systems, the file is called
        as an executable.
     """
@@ -310,7 +303,6 @@ def read_pipe(c, ignore_error=False, raw=False):
     """ Read output from  command. Returns the output text on
         success. On failure, terminates execution, unless
         ignore_error is True, when it returns an empty string.
-
         If raw is True, do not attempt to decode output text.
     """
     (retcode, out, err) = read_pipe_full(c)
@@ -389,7 +381,7 @@ def system(cmd, ignore_error=False):
         sys.stderr.write("executing %s\n" % str(cmd))
     retcode = subprocess.call(cmd, shell=expand)
     if retcode and not ignore_error:
-        raise CalledProcessError(retcode, cmd)
+        raise subprocess.CalledProcessError(retcode, cmd)
 
     return retcode
 
@@ -399,7 +391,7 @@ def p4_system(cmd):
     expand = not isinstance(real_cmd, list)
     retcode = subprocess.call(real_cmd, shell=expand)
     if retcode:
-        raise CalledProcessError(retcode, real_cmd)
+        raise subprocess.CalledProcessError(retcode, real_cmd)
 
 def die_bad_access(s):
     die("failure accessing depot: {0}".format(s.rstrip()))
@@ -453,7 +445,6 @@ _p4_version_string = None
 def p4_version_string():
     """Read the version string, showing just the last line, which
        hopefully is the interesting version bit.
-
        $ p4 -V
        Perforce - The Fast Software Configuration Management System.
        Copyright 1995-2011 Perforce Software.  All rights reserved.
@@ -655,10 +646,8 @@ _diff_tree_pattern = None
 
 def parseDiffTreeEntry(entry):
     """Parses a single diff tree entry into its component elements.
-
     See git-diff-tree(1) manpage for details about the format of the diff
     output. This method returns a dictionary with the following elements:
-
     src_mode - The mode of the source file
     dst_mode - The mode of the destination file
     src_sha1 - The sha1 for the source file
@@ -669,7 +658,6 @@ def parseDiffTreeEntry(entry):
     src - The path for the source file.
     dst - The path for the destination file. This is only present for
           copy or renames. If it is not present, this is None.
-
     If the pattern is not matched, None is returned."""
 
     global _diff_tree_pattern
@@ -1646,29 +1634,23 @@ class P4Submit(Command, P4UserMap):
     can be bypassed with the `--no-verify` command line option. The hook takes
     no parameters and nothing from standard input. Exiting with a non-zero status
     from this script prevents `git-p4 submit` from launching.
-
     One usage scenario is to run unit tests in the hook.
-
     The `p4-prepare-changelist` hook is executed right after preparing the default
     changelist message and before the editor is started. It takes one parameter,
     the name of the file that contains the changelist text. Exiting with a non-zero
     status from the script will abort the process.
-
     The purpose of the hook is to edit the message file in place, and it is not
     supressed by the `--no-verify` option. This hook is called even if
     `--prepare-p4-only` is set.
-
     The `p4-changelist` hook is executed after the changelist message has been
     edited by the user. It can be bypassed with the `--no-verify` option. It
     takes a single parameter, the name of the file that holds the proposed
     changelist text. Exiting with a non-zero status causes the command to abort.
-
     The hook is allowed to edit the changelist file and can be used to normalize
     the text into some project standard format. It can also be used to refuse the
     Submit after inspect the message file.
-
     The `p4-post-changelist` hook is invoked after the submit has successfully
-    occured in P4. It takes no parameters and is meant primarily for notification
+    occurred in P4. It takes no parameters and is meant primarily for notification
     and cannot affect the outcome of the git p4 submit action.
     """
 
@@ -1701,16 +1683,13 @@ class P4Submit(Command, P4UserMap):
         """Extract and return a possible Jobs field in the commit
            message.  It goes into a separate section in the p4 change
            specification.
-
            A jobs line starts with "Jobs:" and looks like a new field
            in a form.  Values are white-space separated on the same
            line or on following lines that start with a tab.
-
            This does not parse and extract the full git commit message
            like a p4 form.  It just sees the Jobs: line as a marker
            to pass everything from then on directly into the p4 form,
            but outside the description section.
-
            Return a tuple (stripped log message, jobs string)."""
 
         m = re.search(r'^Jobs:', message, re.MULTILINE)
@@ -1856,7 +1835,6 @@ class P4Submit(Command, P4UserMap):
         """Run "p4 change -o" to grab a change specification template.
            This does not use "p4 -G", as it is nice to keep the submission
            template in original order, since a human might edit it.
-
            Remove lines in the Files section that show changes to files
            outside the depot path we're committing into."""
 
@@ -2759,7 +2737,6 @@ class P4Sync(Command, P4UserMap):
     //depot/my/project/ -- to import the current head
     //depot/my/project/@all -- to import everything
     //depot/my/project/@1,6 -- to import only from revision 1 to 6
-
     (a ... is not needed in the path p4 specification, it's added implicitly)"""
 
         self.usage += " //depot/path[@revRange]"
@@ -3034,7 +3011,7 @@ class P4Sync(Command, P4UserMap):
             regexp = re.compile(pattern, re.VERBOSE)
             text = ''.join(decode_text_stream(c) for c in contents)
             text = regexp.sub(r'$\1$', text)
-            contents = [ text ]
+            contents = [ encode_text_stream(text) ]
 
         if self.largeFileSystem:
             (git_mode, contents) = self.largeFileSystem.processContent(git_mode, relPath, contents)
@@ -3603,19 +3580,18 @@ class P4Sync(Command, P4UserMap):
         return True
 
     def searchParent(self, parent, branch, target):
-        parentFound = False
-        for blob in read_pipe_lines(["git", "rev-list", "--reverse",
+        targetTree = read_pipe(["git", "rev-parse",
+                                "{}^{{tree}}".format(target)]).strip()
+        for line in read_pipe_lines(["git", "rev-list", "--format=%H %T",
                                      "--no-merges", parent]):
-            blob = blob.strip()
-            if len(read_pipe(["git", "diff-tree", blob, target])) == 0:
-                parentFound = True
+            if line.startswith("commit "):
+                continue
+            commit, tree = line.strip().split(" ")
+            if tree == targetTree:
                 if self.verbose:
-                    print("Found parent of %s in commit %s" % (branch, blob))
-                break
-        if parentFound:
-            return blob
-        else:
-            return None
+                    print("Found parent of %s in commit %s" % (branch, commit))
+                return commit
+        return None
 
     def importChanges(self, changes, origin_revision=0):
         cnt = 1
@@ -4182,14 +4158,14 @@ class P4Clone(P4Sync):
             init_cmd.append("--bare")
         retcode = subprocess.call(init_cmd)
         if retcode:
-            raise CalledProcessError(retcode, init_cmd)
+            raise  subprocess.CalledProcessError(retcode, init_cmd)
 
         if not P4Sync.run(self, depotPaths):
             return False
 
         # create a master branch and check out a work tree
         if gitBranchExists(self.branch):
-            system([ "git", "branch", "master", self.branch ])
+            system([ "git", "branch", currentGitBranch(), self.branch ])
             if not self.cloneBare:
                 system([ "git", "checkout", "-f" ])
         else:
